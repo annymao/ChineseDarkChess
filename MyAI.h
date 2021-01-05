@@ -8,12 +8,14 @@
 #include <time.h>
 #include <algorithm>
 #include <unordered_set>
+#include <unordered_map>
+
 #define RED 0
 #define BLACK 1
 #define CHESS_COVER -1
 #define CHESS_EMPTY -2
 #define COMMAND_NUM 18
-
+#define TIME_LIMIT 10
 class MyAI  
 {
 	const char* commands_name[COMMAND_NUM] = {
@@ -60,6 +62,7 @@ public:
 	bool time_left(const char* data[], char* response);// 16
 	bool showboard(const char* data[], char* response);// 17
 
+
 private:
 	int Color;
 	int Red_Time, Black_Time;
@@ -67,7 +70,8 @@ private:
 	int CoverChess[14];
 	int Red_Chess_Num, Black_Chess_Num;
 	int node;
-
+	//TODO: HashMap
+	//std::unordered_map<>
 	// Utils
 	int GetFin(char c);
 	int ConvertChessNo(int input);
@@ -85,7 +89,7 @@ private:
 	double Evaluate(const int* board);
 	double myEvaluate(const int* board);
 	double Nega_max(const int* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth);
-	double Nega_Scout(const int* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth,double alpha,double beta,bool silence);
+	double Nega_Scout(const int* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth,double alpha,double beta,bool silence,struct timespec start);
 
 	// Display
 	void Pirnf_Chess(int chess_no,char *Result);
