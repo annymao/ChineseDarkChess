@@ -8,13 +8,14 @@
 #include <time.h>
 #include <algorithm>
 #include <unordered_set>
+#include "ZobristHashTable.hpp"
 
-class MyAI{
+class TreeNode{
 public:
-    MyAI(void);
-    ~MyAI(void);
+    TreeNode(void);
+    ~TreeNode(void);
     void init(int* board, int* move, int red_chess_num, int black_chess_num, int* cover_chess, int color, int depth, int remain_depth,double alpha, double beta,bool silence);
-    //TODO: Hash Key
+    unsigned long long hasKey;    
     int Board[32];
     int move;
     int red_chess_num;

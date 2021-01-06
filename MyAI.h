@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <unordered_set>
 #include <unordered_map>
+//#include "TreeNode.hpp"
+//#include "ZobristHashTable.hpp"
 
 #define RED 0
 #define BLACK 1
@@ -16,6 +18,8 @@
 #define CHESS_EMPTY -2
 #define COMMAND_NUM 18
 #define TIME_LIMIT 10
+
+//TreeNode* allHashNode[MAX_NODE_NUM];
 class MyAI  
 {
 	const char* commands_name[COMMAND_NUM] = {
@@ -85,7 +89,7 @@ private:
 	bool RefereeEat(const int* board, const int Startoint, const int EndPoint, const int color);
 	int Expand(const int* board, const int color, int *Result);
 	int ExpandEat(const int* board, const int color, int *Result);
-	int ExpandFlip(const int* board, const int color,std::unordered_set<int> &Result);
+	int ExpandFlip(const int* board, const int color,std::unordered_set<int> &Result,int depth);
 	double Evaluate(const int* board);
 	double myEvaluate(const int* board);
 	double Nega_max(const int* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth);

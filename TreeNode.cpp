@@ -1,6 +1,6 @@
 #include "TreeNode.hpp"
 
-int init(int* board, int* m, int red_num, int black_num, int* cover, int c, int d, int r_depth,double a, double b,bool s){
+int TreeNode::init(int* board, int* m, int red_num, int black_num, int* cover, int c, int d, int r_depth,double a, double b,bool s){
     memcpy(Board, board, sizeof(int)*32);
     move = *m;
     red_chess_num = red_num;
@@ -14,3 +14,4 @@ int init(int* board, int* m, int red_num, int black_num, int* cover, int c, int 
     silence = s;
     //TODO:Hash Key
 }
+
