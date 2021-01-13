@@ -17,7 +17,7 @@
 #define CHESS_COVER -1
 #define CHESS_EMPTY -2
 #define COMMAND_NUM 18
-#define TIME_LIMIT 10
+#define TIME_LIMIT 5
 
 //TreeNode* allHashNode[MAX_NODE_NUM];
 class MyAI  
@@ -89,11 +89,15 @@ private:
 	bool RefereeEat(const int* board, const int Startoint, const int EndPoint, const int color);
 	int Expand(const int* board, const int color, int *Result);
 	int ExpandEat(const int* board, const int color, int *Result);
-	int ExpandFlip(const int* board, const int color,std::unordered_set<int> &Result,int depth);
+	int ExpandFlip(const int* board, const int color,std::unordered_set<int> &Result);
 	double Evaluate(const int* board);
 	double myEvaluate(const int* board);
 	double Nega_max(const int* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth);
 	double Nega_Scout(const int* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth,double alpha,double beta,bool silence,struct timespec start);
+	double F_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num,const int* cover_chess, const int color,int remain_depth,struct timespec start);
+	double G_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num,const int* cover_chess, const int color,int remain_depth,struct timespec start);
+	double Star0_F_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num, const int* cover_chess, int* Chess, int current_move,int remain_count, const int color,int remain_depth,struct timespec start);
+
 
 	// Display
 	void Pirnf_Chess(int chess_no,char *Result);

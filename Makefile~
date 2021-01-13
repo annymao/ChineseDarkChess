@@ -1,4 +1,4 @@
-CXX = g++ -std=c++11 -O3
+CXX = g++ -std=c++11 -Wall -O3
 F_LINUX = -D LINUX
 CLEAN = rm -rf
 

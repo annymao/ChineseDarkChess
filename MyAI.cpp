@@ -399,10 +399,9 @@ int MyAI::ExpandEat(const int* board, const int color,int *Result)
 }
 
 //TODO: Do not flip the chess that is near ourself
-int MyAI::ExpandFlip(const int* board, const int color,std::unordered_set<int> &Result,int depth)
+int MyAI::ExpandFlip(const int* board, const int color,std::unordered_set<int> &Result)
 {
-	if(depth == 0)
-		printf("\n\n\n-----------------------FLIP-------------------\n\n\n");
+
 	int ResultCount = 0;
 	for(int i=0;i<32;i++)
 	{
@@ -533,8 +532,7 @@ int MyAI::ExpandFlip(const int* board, const int color,std::unordered_set<int> &
 								if(currentMove/4==tmp/4 || currentMove%4==tmp%4){
 									if(tmp >= 0 && tmp < 32 && board[tmp]!=CHESS_COVER){
 										if((board[tmp]%7>1 &&board[tmp]/7 != color)||(board[tmp]/7==color && board[tmp]%7>0)){
-											if(depth == 0)
-												printf("\n\n>>>>>>>current flip: %d \n >>>>>>>False: %d\n\n",currentMove,tmp);
+											
 											canFlip = false;
 											break;
 										}
@@ -543,8 +541,7 @@ int MyAI::ExpandFlip(const int* board, const int color,std::unordered_set<int> &
 
 							}
 							if(canFlip){
-								if(depth==0)
-									printf("---------------Current Flip1: %d\n",currentMove*100+currentMove);
+
 								Result.insert(currentMove*100+currentMove);
 								ResultCount++;
 							}
@@ -552,8 +549,7 @@ int MyAI::ExpandFlip(const int* board, const int color,std::unordered_set<int> &
 						}
 						if(board[currentMove]!=CHESS_EMPTY){
 							middleCount++;
-							if(depth == 0)
-								printf("\n\nMiddle\n\n");
+
 							if(middleCount > 1)break;
 						}
 					}
@@ -574,8 +570,6 @@ int MyAI::ExpandFlip(const int* board, const int color,std::unordered_set<int> &
 								if(currentMove/4==tmp/4 || currentMove%4==tmp%4){
 									if(tmp >= 0 && tmp < 32 && board[tmp]!=CHESS_COVER){
 										if((board[tmp]%7>1 &&board[tmp]/7 != color)||(board[tmp]/7==color && board[tmp]%7>0)){
-											if(depth == 0)
-												printf("\n\n>>>>>>>current flip: %d \n >>>>>>>False: %d\n\n",currentMove,tmp);
 											canFlip = false;
 											break;
 										}
@@ -584,8 +578,6 @@ int MyAI::ExpandFlip(const int* board, const int color,std::unordered_set<int> &
 
 							}
 							if(canFlip){
-								if(depth==0)
-									printf("---------------Current Flip2: %d\n",currentMove*100+currentMove);
 								Result.insert(currentMove*100+currentMove);
 								ResultCount++;
 							}
@@ -593,8 +585,6 @@ int MyAI::ExpandFlip(const int* board, const int color,std::unordered_set<int> &
 						}
 						if(board[currentMove]!=CHESS_EMPTY){
 							middleCount++;
-							if(depth == 0)
-								printf("\n\nMiddle\n\n");
 							if(middleCount >1)break;
 						}
 					}
@@ -925,15 +915,15 @@ double MyAI::myEvaluate(const int* board){
 			}
 		}
 	}
-	for(int i=0;i<14;i++){
-		for(int j=0;j<14;j++){
-			if(coef[i][j]>0)
-				score+=13*(double)coef[i][j]/(double)(abs(myChess[i]/4 - oponentChess[j]/4)+abs(myChess[i]%4-oponentChess[j]%4)+1);
-			else{
-				score+= (double)(coef[i][j]*(abs(myChess[i]/4 - oponentChess[j]/4)+abs(myChess[i]%4-oponentChess[j]%4)));
-			}
-		}
-	}
+	// for(int i=0;i<14;i++){
+	// 	for(int j=0;j<14;j++){
+	// 		if(coef[i][j]>0)
+	// 			score+=13*(double)coef[i][j]/(double)(abs(myChess[i]/4 - oponentChess[j]/4)+abs(myChess[i]%4-oponentChess[j]%4)+1);
+	// 		else{
+	// 			score+= (double)(coef[i][j]*(abs(myChess[i]/4 - oponentChess[j]/4)+abs(myChess[i]%4-oponentChess[j]%4)));
+	// 		}
+	// 	}
+	// }
 	if(opHasKing){
 		score += pawnCount*50+gunCount*50;
 	}
@@ -965,14 +955,27 @@ double MyAI::Nega_Scout(const int* board, int* move, const int red_chess_num, co
 		}
 	}else if(red_chess_num == 0 || black_chess_num == 0){ // terminal node (no chess type)
 		this->node++;
-		if(color==0 && red_chess_num == 0){
-			return -1000000;
-		}
-		else if(color==0 && black_chess_num == 0){
-			return -1000000;
+		if(this->Color == color){
+			if(color==0 && red_chess_num == 0){
+				return -1000000;
+			}
+			else if(color==1 && black_chess_num == 0){
+				return -1000000;
+			}
+			else{
+				return 1000000;
+			}			
 		}
 		else{
-			return 1000000;
+			if(color==0 && red_chess_num == 0){
+				return 1000000;
+			}
+			else if(color==1 && black_chess_num == 0){
+				return 1000000;
+			}
+			else{
+				return -1000000;
+			}
 		}
 		//return myEvaluate(board) * (2*((depth&1)^1)-1);
 	}
@@ -1003,7 +1006,7 @@ double MyAI::Nega_Scout(const int* board, int* move, const int red_chess_num, co
 			}
 		}
 		std::unordered_set<int> tmpFlipResult;
-		int tmpFlip = ExpandFlip(board, color,tmpFlipResult,depth);
+		int tmpFlip = ExpandFlip(board, color,tmpFlipResult);
 		if(tmpFlip == 0){
 			if(depth == 0)
 				printf("XXXXXXXXXXXXXxNo CandidateFlipXXXXXXXXXXXXXX\n");
@@ -1073,37 +1076,171 @@ double MyAI::Nega_Scout(const int* board, int* move, const int red_chess_num, co
 			}
 			if(m>=beta) return m; 
 		}
-		if(silence){
+		if(silence && depth%2==0){
 			for(int i = move_count; i < move_count + flip_count; i++){ // flip
-				double total = 0;
-				for(int k = 0; k < remain_count; k++){
-					new_red = red_chess_num, new_black = black_chess_num;
-					memcpy(new_board, board, sizeof(int)*32);
-					memcpy(new_cover, cover_chess, sizeof(int)*14);
-					
-					MakeMove(new_board, &new_red, &new_black, new_cover, Moves[i], Chess[k]);
-					double t = -Nega_Scout(new_board, &new_move, new_red, new_black, new_cover, color^1, depth+1, remain_depth-1,-n,-std::max(alpha,m),silence,start);
-					total += cover_chess[Chess[k]] * t;
-				}
-
-				double E_score = (total / remain_total); // calculate the expect value of flip
+				double E_score = Star0_F_3(board, std::max(alpha,m),beta,red_chess_num, black_chess_num,  cover_chess, Chess, Moves[i],remain_count,color,remain_depth,start);
 				if(E_score > m){ 
 					m = E_score;
 					*move = Moves[i];
-				}else if(E_score == m){
-					bool r = rand()%2;
-					if(r) *move = Moves[i];
 				}
+				// else if(E_score == m){
+				// 	bool r = rand()%2;
+				// 	if(r) *move = Moves[i];
+				// }
 			}
 
 		}
-
-		
-
 		return m;
 	}
 }
+double  MyAI::F_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num,const int* cover_chess, const int color,int remain_depth,struct timespec start){
+	struct timespec end;
+	clock_gettime(CLOCK_REALTIME, &end);
+	if(remain_depth <= 0 || ((double)((end.tv_sec+end.tv_nsec*1e-9) - (double)(start.tv_sec+start.tv_nsec*1e-9)))>TIME_LIMIT){
+		return myEvaluate(board);
+	}
+	else if(red_chess_num == 0 || black_chess_num == 0){
+		return myEvaluate(board);
+	}
+	int Result[2048];
+	int Moves[2048], Chess[2048];
+	int flip_count = 0, remain_count = 0, remain_total = 0;
+	int move_count = 0;
 
+	// move
+	move_count = Expand(board, color, Result);
+	memcpy(Moves, Result, sizeof(int)*move_count);
+	// flip
+
+	for(int j = 0; j < 14; j++){ // find remain chess
+		if(cover_chess[j] > 0){
+			Chess[remain_count] = j;
+			remain_count++;
+			remain_total += cover_chess[j];
+		}
+	}
+	std::unordered_set<int> tmpFlipResult;
+	int tmpFlip = ExpandFlip(board, color,tmpFlipResult);
+	if(tmpFlip == 0){
+		for(int i = 0; i < 32; i++){ // find cover
+			if(board[i] == CHESS_COVER){
+				Moves[move_count + flip_count] = i*100+i;
+				flip_count++;
+			}
+		}			
+	}
+	else{
+		for ( auto it = tmpFlipResult.begin(); it != tmpFlipResult.end(); ++it ){
+			Moves[move_count + flip_count] = *it;
+			flip_count++;
+		}
+	}
+		
+	if(move_count + flip_count == 0){ // terminal node (no move type)
+		return myEvaluate(board);
+	}
+	else{
+		double m = -DBL_MAX;
+		int new_board[32], new_cover[14], new_move, new_red, new_black;
+		// search deeper
+		for(int i = 0; i < move_count; i++){ // move
+			new_red = red_chess_num, new_black = black_chess_num;
+			memcpy(new_board, board, sizeof(int)*32);
+			memcpy(new_cover, cover_chess, sizeof(int)*14);
+			
+			MakeMove(new_board, &new_red, &new_black, new_cover, Moves[i], -1); // -1: NULL
+
+			double t = G_3(new_board,  std::max(alpha,m), beta,new_red, new_black, new_cover,color^1,remain_depth-1,start);
+			if(t > m){ 
+				m=t;
+				//*move = Moves[i];
+			}
+			// else if(t == m){
+			// 	bool r = rand()%2;
+			// 	if(r) *move = Moves[i];
+			// }
+			if(m>=beta) return m; 
+		}
+
+		for(int i = move_count; i < move_count + flip_count; i++){ // flip
+			double t = Star0_F_3(board, std::max(alpha,m),beta,red_chess_num, black_chess_num,  cover_chess, Chess, Moves[i],remain_count,color,remain_depth,start);
+			if(t > m){ 
+				m=t;
+				//*move = Moves[i];
+			}
+			// else if(t == m){
+			// 	bool r = rand()%2;
+			// 	if(r) *move = Moves[i];
+			// }
+			if(m>=beta) return m; 
+		}
+		return m;
+	}
+	return 0;
+}
+
+double MyAI::G_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num,const int* cover_chess, const int color,int remain_depth,struct timespec start){
+	struct timespec end;
+	clock_gettime(CLOCK_REALTIME, &end);
+	if(remain_depth <= 0 || ((double)((end.tv_sec+end.tv_nsec*1e-9) - (double)(start.tv_sec+start.tv_nsec*1e-9)))>TIME_LIMIT){
+		return myEvaluate(board);
+	}
+	if(red_chess_num == 0 || black_chess_num == 0){
+		return myEvaluate(board);
+	}
+	int Result[2048];
+	int Moves[2048];
+	int move_count = 0;
+
+	// move
+	move_count = Expand(board, color, Result);
+	memcpy(Moves, Result, sizeof(int)*move_count);
+		
+	if(move_count == 0){ // terminal node (no move type)
+		return myEvaluate(board);
+	}
+	else{
+		double m = DBL_MAX;
+		int new_board[32], new_cover[14], new_move, new_red, new_black;
+		// search deeper
+		for(int i = 0; i < move_count; i++){ // move
+			new_red = red_chess_num, new_black = black_chess_num;
+			memcpy(new_board, board, sizeof(int)*32);
+			memcpy(new_cover, cover_chess, sizeof(int)*14);
+			
+			MakeMove(new_board, &new_red, &new_black, new_cover, Moves[i], -1); // -1: NULL
+
+			double t = F_3(new_board,  alpha, std::min(m,beta),red_chess_num, black_chess_num, cover_chess,color^1,remain_depth-1,start);
+			if(t < m){ 
+				m=t;
+				//*move = Moves[i];
+			}
+			// else if(t == m){
+			// 	bool r = rand()%2;
+			// 	if(r) *move = Moves[i];
+			// }
+			if(m<=alpha) return m; 
+		}
+	}
+	return 0;
+}
+
+double  MyAI::Star0_F_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num, const int* cover_chess, int* Chess, int current_move,int remain_count, const int color,int remain_depth,struct timespec start){
+	int new_board[32], new_cover[14], new_move, new_red, new_black;
+
+	double total = 0;
+	for(int k = 0; k < remain_count; k++){
+		new_red = red_chess_num, new_black = black_chess_num;
+		memcpy(new_board, board, sizeof(int)*32);
+		memcpy(new_cover, cover_chess, sizeof(int)*14);
+		
+		MakeMove(new_board, &new_red, &new_black, new_cover, current_move, Chess[k]);
+		double t = G_3(new_board,  alpha, beta,new_red, new_black, new_cover,color^1,remain_depth-1,start);
+		total += t;
+	}
+	double E_score = (total / remain_count); // calculate the expect value of flip
+	return E_score;
+}
 
 //Display chess board
 void MyAI::Pirnf_Chessboard()
