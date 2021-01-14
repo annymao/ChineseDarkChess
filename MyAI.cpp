@@ -230,13 +230,13 @@ void MyAI::generateMove(char move[6])
 		printf("Total Chess Smaller than 30\n");
 		while(wall_clock_in_seconds < TIME_LIMIT){
 			thresholdDepth+=1;
-			t = Nega_Scout(this->Board, &best_move, this->Red_Chess_Num, this->Black_Chess_Num, this->CoverChess, this->Color, 0, thresholdDepth,-DBL_MAX,DBL_MAX,true,start);
+			t = Nega_Scout(this->Board, &best_move, this->Red_Chess_Num, this->Black_Chess_Num, this->CoverChess, this->Color, 0, thresholdDepth,-DBL_MAX,DBL_MAX,true,0,start);
 			clock_gettime(CLOCK_REALTIME, &end);
 			wall_clock_in_seconds =(double)((end.tv_sec+end.tv_nsec*1e-9) - (double)(start.tv_sec+start.tv_nsec*1e-9));			
 		}
 	}
 	else
-		t = Nega_Scout(this->Board, &best_move, this->Red_Chess_Num, this->Black_Chess_Num, this->CoverChess, this->Color, 0, DEPTH_LIMIT,-DBL_MAX,DBL_MAX,true,start);
+		t = Nega_Scout(this->Board, &best_move, this->Red_Chess_Num, this->Black_Chess_Num, this->CoverChess, this->Color, 0, DEPTH_LIMIT,-DBL_MAX,DBL_MAX,true,0,start);
 	
 	startPoint = best_move/100;
 	EndPoint   = best_move%100;
@@ -864,10 +864,10 @@ bool MyAI::Referee(const int* chess, const int from_location_no, const int to_lo
 // always use my point of view, so use this->Color
 double MyAI::myEvaluate(const int* board){
 	// total score
-	double score = 350; // 1*5+180*2+6*2+18*2+90*2+270*2+810*1
+	double score = 1943; // 1*5+180*2+6*2+18*2+90*2+270*2+810*1
 	// static material values
 	// cover and empty are both zero
-	static const double values[14] = {15,29,2,5,15,48,80,15,29,2,5,15,80,160};
+	static const double values[14] = {1,180,6,18,90,270,810,1,180,6,18,90,270,810};
 	int pawnCount=0,gunCount = 0;
 	int opPawnCount=0,opGunCount = 0;
 	bool opHasKing = false;
@@ -882,6 +882,7 @@ double MyAI::myEvaluate(const int* board){
 						   {1,1,1,3,0,-2,-2},
 						   {1,1,1,2,3,0,-2},
 						   {-1,1,1,1,2,2,0}};
+	int myMax =0, opMax = 0;
 	for(int i = 0; i < 32; i++){
 		if(!(board[i] == CHESS_EMPTY || board[i] == CHESS_COVER)){
 			if(board[i] / 7 == this->Color){
@@ -896,7 +897,9 @@ double MyAI::myEvaluate(const int* board){
 				else if(board[i]%7 == 6){
 					hasKing = true;
 				}
-				
+				if(board[i]%7>myMax){
+					myMax = board[i]%7;
+				}
 			}else{
 				oponentChess[board[i]%7]=i;
 				score -= values[board[i]];
@@ -912,9 +915,13 @@ double MyAI::myEvaluate(const int* board){
 					// }
 					opGunCount++;
 				}
+				if(board[i]%7>opMax){
+					opMax = board[i]%7;
+				}
 			}
 		}
 	}
+	
 	// for(int i=0;i<14;i++){
 	// 	for(int j=0;j<14;j++){
 	// 		if(coef[i][j]>0)
@@ -926,6 +933,10 @@ double MyAI::myEvaluate(const int* board){
 	// }
 	if(opHasKing){
 		score += pawnCount*50+gunCount*50;
+		if(pawnCount==0 && gunCount==0 )return 0;
+	}
+	else if(opMax>myMax){
+		return 0;
 	}
 	else{
 		score +=1000;
@@ -938,7 +949,7 @@ double MyAI::myEvaluate(const int* board){
 }
 
 int chessCorner[4] = {10,11,21,22};
-double MyAI::Nega_Scout(const int* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth,double alpha, double beta,bool silence,struct timespec start){
+double MyAI::Nega_Scout(const int* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth,double alpha, double beta,bool silence,double exchangeCount,struct timespec start){
 	int eatCount = 0;
 	int Result[1024];
 	//bool silence = false;
@@ -948,36 +959,40 @@ double MyAI::Nega_Scout(const int* board, int* move, const int red_chess_num, co
 		eatCount = ExpandEat(board, color, Result);
 		if(eatCount==0){
 			this->node++;
-			return myEvaluate(board) * (2*((depth&1)^1)-1); // odd: *-1, even: *1
+			if(silence==false && exchangeCount<0){
+				return 0;//-1000000 * (2*((depth&1)^1)-1);
+			}
+			return (myEvaluate(board)+exchangeCount) * (2*((depth&1)^1)-1); // odd: *-1, even: *1
 		}
 		else{
 			silence = false;
+
 		}
 	}else if(red_chess_num == 0 || black_chess_num == 0){ // terminal node (no chess type)
 		this->node++;
-		if(this->Color == color){
-			if(color==0 && red_chess_num == 0){
-				return -1000000;
-			}
-			else if(color==1 && black_chess_num == 0){
-				return -1000000;
-			}
-			else{
-				return 1000000;
-			}			
-		}
-		else{
-			if(color==0 && red_chess_num == 0){
-				return 1000000;
-			}
-			else if(color==1 && black_chess_num == 0){
-				return 1000000;
-			}
-			else{
-				return -1000000;
-			}
-		}
-		//return myEvaluate(board) * (2*((depth&1)^1)-1);
+
+		// if(color==0 && red_chess_num == 0){
+		// 	return 0;
+		// }
+		// else if(color==1 && black_chess_num == 0){
+		// 	return 0;
+		// }
+		// else{
+		// 	return 1000000;
+		// }			
+		
+		// else{
+		// 	if(color==0 && red_chess_num == 0){
+		// 		return 1000000;
+		// 	}
+		// 	else if(color==1 && black_chess_num == 0){
+		// 		return 1000000;
+		// 	}
+		// 	else{
+		// 		return -1000000;
+		// 	}
+		// }
+		return myEvaluate(board) * (2*((depth&1)^1)-1);
 	}
 	
 
@@ -1052,21 +1067,30 @@ double MyAI::Nega_Scout(const int* board, int* move, const int red_chess_num, co
 		double m = -DBL_MAX;
 		double n = beta;
 		int new_board[32], new_cover[14], new_move, new_red, new_black;
+		int src=0,dst=0,silenceExchange = 0;
 		// search deeper
 		for(int i = 0; i < move_count; i++){ // move
 			new_red = red_chess_num, new_black = black_chess_num;
 			memcpy(new_board, board, sizeof(int)*32);
 			memcpy(new_cover, cover_chess, sizeof(int)*14);
-			
+			if(silence==false){
+				src = Moves[i]/100;
+				dst = Moves[i]%100;
+				double values[14] = {1,180,6,18,90,270,810,1,180,6,18,90,270,810};	
+				silenceExchange = (values[board[dst]%7]) *  (2*((depth&1)^1)-1);
+			}
+			else{
+				silenceExchange=0;
+			}
 			MakeMove(new_board, &new_red, &new_black, new_cover, Moves[i], -1); // -1: NULL
-
-			double t = -Nega_Scout(new_board, &new_move, new_red, new_black, new_cover, color^1, depth+1, remain_depth-1,-n,-std::max(alpha,m),silence,start);
+			
+			double t = -Nega_Scout(new_board, &new_move, new_red, new_black, new_cover, color^1, depth+1, remain_depth-1,-n,-std::max(alpha,m),silence,exchangeCount+silenceExchange,start);
 			if(t > m){ 
 				if(n==beta || t>=beta || remain_depth<3){
 					m=t;
 				}
 				else{
-					m = -Nega_Scout(new_board, &new_move, new_red, new_black, new_cover, color^1, depth+1, remain_depth-1,-beta,-t,silence,start);
+					m = -Nega_Scout(new_board, &new_move, new_red, new_black, new_cover, color^1, depth+1, remain_depth-1,-beta,-t,silence,exchangeCount+silenceExchange,start);
 				}
 				// m = t;
 				*move = Moves[i];
@@ -1076,9 +1100,9 @@ double MyAI::Nega_Scout(const int* board, int* move, const int red_chess_num, co
 			}
 			if(m>=beta) return m; 
 		}
-		if(silence && depth%2==0){
+		if(silence && (depth%2==0)){
 			for(int i = move_count; i < move_count + flip_count; i++){ // flip
-				double E_score = Star0_F_3(board, std::max(alpha,m),beta,red_chess_num, black_chess_num,  cover_chess, Chess, Moves[i],remain_count,color,remain_depth,start);
+				double E_score = Star0_F_3(board, std::max(alpha,m),beta,red_chess_num, black_chess_num,  cover_chess, Chess, Moves[i],remain_count,remain_total,color,remain_depth,start);
 				if(E_score > m){ 
 					m = E_score;
 					*move = Moves[i];
@@ -1163,7 +1187,7 @@ double  MyAI::F_3(const int* board, double alpha, double beta,const int red_ches
 		}
 
 		for(int i = move_count; i < move_count + flip_count; i++){ // flip
-			double t = Star0_F_3(board, std::max(alpha,m),beta,red_chess_num, black_chess_num,  cover_chess, Chess, Moves[i],remain_count,color,remain_depth,start);
+			double t = Star0_F_3(board, std::max(alpha,m),beta,red_chess_num, black_chess_num,  cover_chess, Chess, Moves[i],remain_count,remain_total,color,remain_depth,start);
 			if(t > m){ 
 				m=t;
 				//*move = Moves[i];
@@ -1225,7 +1249,7 @@ double MyAI::G_3(const int* board, double alpha, double beta,const int red_chess
 	return 0;
 }
 
-double  MyAI::Star0_F_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num, const int* cover_chess, int* Chess, int current_move,int remain_count, const int color,int remain_depth,struct timespec start){
+double  MyAI::Star0_F_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num, const int* cover_chess, int* Chess, int current_move,int remain_count, int remain_total,const int color,int remain_depth,struct timespec start){
 	int new_board[32], new_cover[14], new_move, new_red, new_black;
 
 	double total = 0;
@@ -1236,9 +1260,9 @@ double  MyAI::Star0_F_3(const int* board, double alpha, double beta,const int re
 		
 		MakeMove(new_board, &new_red, &new_black, new_cover, current_move, Chess[k]);
 		double t = G_3(new_board,  alpha, beta,new_red, new_black, new_cover,color^1,remain_depth-1,start);
-		total += t;
+		total += t*Chess[k];
 	}
-	double E_score = (total / remain_count); // calculate the expect value of flip
+	double E_score = (total / remain_total); // calculate the expect value of flip
 	return E_score;
 }
 

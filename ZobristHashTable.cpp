@@ -1,14 +1,7 @@
-#ifndef ZOBRISTHASHTABLE_INCLUDED
-#define ZOBRISTHASHTABLE_INCLUDED 
+
 #include <random> 
 #include <limits.h>
-
-#define MAX_NODE_NUM 4294967296 //2^32
-
-
-static std::random_device rd;    
-static std::mt19937_64 random_generator(rd());
-static std::uniform_int_distribution<unsigned long long> num(0, ULLONG_MAX);
+#include "ZobristHashTable.h"
 
 unsigned long long randomColorValue[2];
 unsigned long long randomMoveValue[16][32];
@@ -27,7 +20,7 @@ void InitRandomValue(){
 unsigned long long InitHashKey(int* board,int color){
     unsigned long long value = 0;
     //color
-    value ^= randomColorValue[int(color)];
+    //value ^= randomColorValue[int(color)];
     
     //board
     for(int i = 0 ; i < 32 ; ++i){
@@ -54,10 +47,9 @@ unsigned long long UpdateHashForMove(unsigned long long oldValue, int chessFrom,
         ^randomMoveValue[chessFrom][chessToPos];
 } 
 
-unsigned long long UpdateHashForFlip(unsigned long long oldValue, int chessFlip, char chessPos){
+unsigned long long UpdateHashForFlip(unsigned long long oldValue, int chessFlip, int chessPos){
     return oldValue^randomColorValue[0]^randomColorValue[1]
         ^randomMoveValue[15][chessPos]
         ^randomMoveValue[chessFlip][chessPos];
 }
 
-#endif

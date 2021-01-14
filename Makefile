@@ -3,8 +3,11 @@ F_LINUX = -D LINUX
 CLEAN = rm -rf
 
 all:
-	$(CXX) main.cpp MyAI.cpp -o myAI
+	$(CXX) main.cpp MyAI.cpp TreeNode.cpp ZobristHashTable.cpp -o CDC
 	$(CLEAN) -f *.o
-
+myAI:        
+	$(CXX) main.cpp MyAI.cpp -o myAI	
+	$(CLEAN) -f *.o
+	
 clean:
 	$(CLEAN) myAI
