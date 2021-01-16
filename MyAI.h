@@ -83,8 +83,8 @@ private:
 	void MakeMove(int* board, int* red_chess_num, int* black_chess_num, int* cover_chess, const int move, const int chess);
 	void MakeMove(int* board, int* red_chess_num, int* black_chess_num, int* cover_chess, const char move[6]);
 	bool Referee(const int* board, const int Startoint, const int EndPoint, const int color);
-	bool RefereeEat(const int* board, const int Startoint, const int EndPoint, const int color);
-	int Expand(const int* board, const int color, int *Result);
+	int RefereeEat(const int* board, const int Startoint, const int EndPoint, const int color);
+	int Expand(const int* board, int red_chess_num, int black_chess_num,const int* cover_chess, const int color,int *ResultEat, int* ResultMove,int* saveEat,int &saveEatCount);
 	int ExpandEat(const int* board, const int color, int *Result);
 	int ExpandFlip(const int* board, const int color,std::unordered_set<int> &Result);
 	double myEvaluate(const int* board);
