@@ -257,7 +257,7 @@ void MyAI::generateMove(char move[6])
 		}
 	}
 	else if(remainChess < 16){
-		double t = Nega_max(this->Board, &best_move, this->Red_Chess_Num, this->Black_Chess_Num, this->CoverChess, this->Color, 0, DEPTH_LIMIT+2);
+		double t = Nega_max(this->Board, &best_move, this->Red_Chess_Num, this->Black_Chess_Num, this->CoverChess, this->Color, 0, DEPTH_LIMIT+2,start);
 	}
 	else{
 		TreeNode* CDCNode;
@@ -406,7 +406,7 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 							if(Move[k] >= 0 && Move[k] < 32)
 							{
 
-								if(RefereeEat(board,Move[k],rowCount,color^1)==2)
+								if(RefereeEat(new_board,Move[k],rowCount,color^1)==2)
 								{
 									isSave = false;
 								}
@@ -414,9 +414,9 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 						}
 						int currentCol = rowCount%4;
 						for(int r = 0;r<8;r++){
-							int pos = r*4+col;
-							if(pos>=0&&pos<=32 &&board[pos]%7==1 &&board[pos]/7!=color){
-								if(RefereeEat(board,pos,rowCount,color^1)==2)
+							int pos = r*4+currentCol;
+							if(pos>=0&&pos<=32 &&new_board[pos]%7==1 &&new_board[pos]/7!=color){
+								if(RefereeEat(new_board,pos,rowCount,color^1)==2)
 								{
 									isSave = false;
 								}
@@ -426,8 +426,8 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 						int currentRow = rowCount/4;
 						for(int c = 0;c<4;c++){
 							int pos = currentRow*4+c;
-							if(pos>=0&&pos<=32 &&board[pos]%7==1 &&board[pos]/7!=color){
-								if(RefereeEat(board,pos,rowCount,color^1)==2)
+							if(pos>=0&&pos<=32 &&new_board[pos]%7==1 &&new_board[pos]/7!=color){
+								if(RefereeEat(new_board,pos,rowCount,color^1)==2)
 								{
 									isSave = false;
 								}
@@ -466,7 +466,7 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 							if(Move[k] >= 0 && Move[k] < 32)
 							{
 
-								if(RefereeEat(board,Move[k],colCount,color^1)==2)
+								if(RefereeEat(new_board,Move[k],colCount,color^1)==2)
 								{
 									isSave = false;
 								}
@@ -475,8 +475,8 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 						int currentCol = colCount%4;
 						for(int r = 0;r<8;r++){
 							int pos = r*4+currentCol;
-							if(pos>=0&&pos<=32 &&board[pos]%7==1 &&board[pos]/7!=color){
-								if(RefereeEat(board,pos,colCount,color^1)==2)
+							if(pos>=0&&pos<=32 &&new_board[pos]%7==1 &&new_board[pos]/7!=color){
+								if(RefereeEat(new_board,pos,colCount,color^1)==2)
 								{
 									isSave = false;
 								}
@@ -486,8 +486,8 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 						int currentRow = (colCount/4);
 						for(int c = 0;c<4;c++){
 							int pos = currentRow*4+c;
-							if(pos>=0&&pos<=32 &&board[pos]%7==1 &&board[pos]/7!=color){
-								if(RefereeEat(board,pos,colCount,color^1)==2)
+							if(pos>=0&&pos<=32 &&new_board[pos]%7==1 &&new_board[pos]/7!=color){
+								if(RefereeEat(new_board,pos,colCount,color^1)==2)
 								{
 									isSave = false;
 								}
@@ -530,7 +530,7 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 							{
 								if(Move2[h] >= 0 && Move2[h] < 32)
 								{
-									if(RefereeEat(board,Move2[h],Move[k],color^1)==2)
+									if(RefereeEat(new_board,Move2[h],Move[k],color^1)==2)
 									{
 										isSave = false;
 									}
@@ -539,8 +539,8 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 							int currentCol = Move[k]%4;
 							for(int r = 0;r<8;r++){
 								int pos = r*4+currentCol;
-								if(pos>=0&&pos<=32 &&board[pos]%7==1 &&board[pos]/7!=color){
-									if(RefereeEat(board,pos,Move[k],color^1)==2)
+								if(pos>=0&&pos<=32 &&new_board[pos]%7==1 &&new_board[pos]/7!=color){
+									if(RefereeEat(new_board,pos,Move[k],color^1)==2)
 									{
 										isSave = false;
 									}
@@ -550,8 +550,8 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 							int currentRow = (Move[k]/4);
 							for(int c = 0;c<4;c++){
 								int pos = currentRow*4+c;
-								if(pos>=0&&pos<=32 &&board[pos]%7==1 &&board[pos]/7!=color){
-									if(RefereeEat(board,pos,Move[k],color^1)==2)
+								if(pos>=0&&pos<=32 &&new_board[pos]%7==1 &&new_board[pos]/7!=color){
+									if(RefereeEat(new_board,pos,Move[k],color^1)==2)
 									{
 										isSave = false;
 									}
@@ -1640,8 +1640,11 @@ bool MyAI::TAReferee(const int* chess, const int from_location_no, const int to_
 
 // always use my point of view, so use this->Color
 
-double MyAI:: Nega_max(const int* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth){
-	if(remain_depth == 0){ // reach limit of depth
+double MyAI:: Nega_max(const int* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth,struct timespec start){
+	
+	struct timespec end;
+	clock_gettime(CLOCK_REALTIME, &end);
+	if(remain_depth == 0 || ((double)((end.tv_sec+end.tv_nsec*1e-9) - (double)(start.tv_sec+start.tv_nsec*1e-9)))>15){ // reach limit of depth
 		this->node++;
 		return TAEvaluate(board) * (2*((depth&1)^1)-1); // odd: *-1, even: *1
 	}else if(red_chess_num == 0 || black_chess_num == 0){ // terminal node (no chess type)
@@ -1649,13 +1652,35 @@ double MyAI:: Nega_max(const int* board, int* move, const int red_chess_num, con
 		return TAEvaluate(board) * (2*((depth&1)^1)-1);
 	}
 
-	int Result[1024];
+	int Result[1024],ResultEat[1024],ResultMove[1024],saveEat[1024];
+	int saveEatCount=0;
 	// Moves[] = {move} U {flip}, Chess[] = {remain chess}
 	int Moves[2048], Chess[2048];
 	int flip_count = 0, remain_count = 0, remain_total = 0;
 	int move_count = 0;
 
 	// move
+	if(depth==0){
+		move_count = Expand(board,red_chess_num, black_chess_num,cover_chess,color, ResultEat,ResultMove,saveEat,saveEatCount);
+		if(saveEatCount>0){
+			int maxMove = saveEat[0],maxEat = board[saveEat[0]%100];
+			for(int i=1;i<saveEatCount;i++){
+				int eat = board[saveEat[i]%100];
+				if((eat>maxEat&&maxEat!=1)||eat ==1){
+					maxEat = eat;
+					maxMove = saveEat[i];
+				}else if(eat == maxEat){
+					if(board[maxMove/100] > board[saveEat[i]/100]){
+						maxMove = saveEat[i];
+					}
+				}
+				
+			}
+			*move = maxMove;
+			return TAEvaluate(board)* (2*((depth&1)^1)-1);
+		}
+	}
+
 	move_count = TAExpand(board, color, Result);
 	memcpy(Moves, Result, sizeof(int)*move_count);
 	// flip
@@ -1686,7 +1711,7 @@ double MyAI:: Nega_max(const int* board, int* move, const int red_chess_num, con
 			memcpy(new_cover, cover_chess, sizeof(int)*14);
 			
 			TAMakeMove(new_board, &new_red, &new_black, new_cover, Moves[i], -1); // -1: NULL
-			double t = -Nega_max(new_board, &new_move, new_red, new_black, new_cover, color^1, depth+1, remain_depth-1);
+			double t = -Nega_max(new_board, &new_move, new_red, new_black, new_cover, color^1, depth+1, remain_depth-1,start);
 			if(t > m){ 
 				m = t;
 				*move = Moves[i];
@@ -1703,7 +1728,7 @@ double MyAI:: Nega_max(const int* board, int* move, const int red_chess_num, con
 				memcpy(new_cover, cover_chess, sizeof(int)*14);
 				
 				TAMakeMove(new_board, &new_red, &new_black, new_cover, Moves[i], Chess[k]);
-				double t = -Nega_max(new_board, &new_move, new_red, new_black, new_cover, color^1, depth+1, remain_depth-1);
+				double t = -Nega_max(new_board, &new_move, new_red, new_black, new_cover, color^1, depth+1, remain_depth-1,start);
 				total += cover_chess[Chess[k]] * t;
 			}
 

@@ -96,7 +96,7 @@ private:
 	void TAMakeMove(int* board, int* red_chess_num, int* black_chess_num, int* cover_chess, const int move, const int chess);
 	int TAExpand(const int* board, const int color,int *Result);
 	bool TAReferee(const int* chess, const int from_location_no, const int to_location_no, const int UserId);
-	double Nega_max(const int* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth);
+	double Nega_max(const int* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth,struct timespec start);
 	double TAEvaluate(const int* board);
 
 	// Display
