@@ -15,6 +15,7 @@ public:
     TreeNode(void);
     ~TreeNode(void);
     void init(const int* board, int d, unsigned long long key);
+    void copyRemain(std::vector<int> remain[14]);
     unsigned long long hashKey;    
     int Board[32];
     std::vector<int> remainChess[14];
@@ -22,7 +23,7 @@ public:
     int depth;
     double bestValue;
     int bestMove;
-
+    
 
 };
 

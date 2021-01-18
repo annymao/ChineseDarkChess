@@ -9,3 +9,10 @@ void TreeNode::init(const int* board, int d, unsigned long long key){
 }
 
 
+void TreeNode::copyRemain(std::vector<int> remain[14]){
+    for(int i=0;i<14;i++){
+        for(int j=0;j<remain[i].size();j++){
+            remainChess[i].push_back(remain[i][j]);
+        }
+    }
+}

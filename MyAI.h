@@ -92,7 +92,12 @@ private:
 	double F_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num,const int* cover_chess, const int color,int remain_depth,struct timespec start);
 	double G_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num,const int* cover_chess, const int color,int remain_depth,struct timespec start);
 	double Star0_F_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num, const int* cover_chess, int* Chess, int current_move,int remain_count, int remain_total,const int color,int remain_depth,struct timespec start);
-
+	
+	void TAMakeMove(int* board, int* red_chess_num, int* black_chess_num, int* cover_chess, const int move, const int chess);
+	int TAExpand(const int* board, const int color,int *Result);
+	bool TAReferee(const int* chess, const int from_location_no, const int to_location_no, const int UserId);
+	double Nega_max(const int* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth);
+	double TAEvaluate(const int* board);
 
 	// Display
 	void Pirnf_Chess(int chess_no,char *Result);
