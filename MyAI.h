@@ -88,7 +88,7 @@ private:
 	int ExpandEat(const int* board, const int color, int *Result);
 	int ExpandFlip(const int* board, const int color,std::unordered_set<int> &Result);
 	double myEvaluate(const int* board);
-	double Nega_Scout(const TreeNode* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth,double alpha,double beta,bool silence,double exchangeCount,struct timespec start,int &isSaveEat);
+	double Nega_Scout(TreeNode* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, int remain_depth,double alpha,double beta,bool silence,double exchangeCount,struct timespec start,int &isSaveEat);
 	double F_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num,const int* cover_chess, const int color,int remain_depth,struct timespec start);
 	double G_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num,const int* cover_chess, const int color,int remain_depth,struct timespec start);
 	double Star0_F_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num, const int* cover_chess, int* Chess, int current_move,int remain_count, int remain_total,const int color,int remain_depth,struct timespec start);
