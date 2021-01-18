@@ -8,6 +8,7 @@
 #include <time.h>
 #include <algorithm>
 #include <unordered_set>
+#include <vector>
 
 class TreeNode{
 public:
@@ -16,6 +17,7 @@ public:
     void init(const int* board, int d, unsigned long long key);
     unsigned long long hashKey;    
     int Board[32];
+    std::vector<int> remainChess[14];
     int move;
     int depth;
     double bestValue;

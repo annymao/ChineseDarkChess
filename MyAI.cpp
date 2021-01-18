@@ -233,7 +233,7 @@ void MyAI::generateMove(char move[6])
 	int remainChess = this->Red_Chess_Num+ this->Black_Chess_Num;
 	
 	int hashIndex = hashKey%MAX_NODE_NUM;
-	
+	int isSaveEat=0;
 	if(remainChess < 24 && remainChess>8){
 		TreeNode* CDCNode;
 		if(allHashNode[hashIndex]!=NULL && allHashNode[hashIndex]->hashKey == hashKey){
@@ -248,7 +248,9 @@ void MyAI::generateMove(char move[6])
 		printf("Total Chess Smaller than 30\n");
 		while(wall_clock_in_seconds < TIME_LIMIT){
 			thresholdDepth+=1;
-			t = Nega_Scout(CDCNode, &best_move, this->Red_Chess_Num, this->Black_Chess_Num, this->CoverChess, this->Color, 0, thresholdDepth,-DBL_MAX,DBL_MAX,true,0,start);
+			isSaveEat=0;
+			t = Nega_Scout(CDCNode, &best_move, this->Red_Chess_Num, this->Black_Chess_Num, this->CoverChess, this->Color, 0, thresholdDepth,-DBL_MAX,DBL_MAX,true,0,start,isSaveEat);
+			if(isSaveEat==1)break;
 			clock_gettime(CLOCK_REALTIME, &end);
 			wall_clock_in_seconds =(double)((end.tv_sec+end.tv_nsec*1e-9) - (double)(start.tv_sec+start.tv_nsec*1e-9));			
 		}
@@ -265,7 +267,9 @@ void MyAI::generateMove(char move[6])
 		}
 		while(wall_clock_in_seconds < 5){
 			thresholdDepth+=1;
-			t = Nega_Scout(CDCNode, &best_move, this->Red_Chess_Num, this->Black_Chess_Num, this->CoverChess, this->Color, 0, thresholdDepth,-DBL_MAX,DBL_MAX,true,0,start);
+			isSaveEat=0;
+			t = Nega_Scout(CDCNode, &best_move, this->Red_Chess_Num, this->Black_Chess_Num, this->CoverChess, this->Color, 0, thresholdDepth,-DBL_MAX,DBL_MAX,true,0,start,isSaveEat);
+			if(isSaveEat==1)break;
 			clock_gettime(CLOCK_REALTIME, &end);
 			wall_clock_in_seconds =(double)((end.tv_sec+end.tv_nsec*1e-9) - (double)(start.tv_sec+start.tv_nsec*1e-9));			
 		}
@@ -908,35 +912,36 @@ double MyAI::myEvaluate(const int* board){
 			}
 		}
 	}
-	// if(opHasKing){
-	// 	score += pawnCount*50+gunCount*50;
-	// 	if(pawnCount==0 && gunCount==0 )return 0;
-	// }
-	// else{
-	// 	score +=1000;
-	// }
-	// if(hasKing){
-	// 	score -= opGunCount*50+opPawnCount*50;
+	if(opHasKing){
+		score += pawnCount*15+gunCount*15;
+		if(pawnCount==0 && gunCount==0 )return 0;
+	}
+	else{
+		score +=100;
+	}
+	if(hasKing){
+		score -= opGunCount*15+opPawnCount*15;
 
-	// }
+	}
 	return score;
 }
 
 int chessCorner[4] = {10,11,21,22};
-double MyAI::Nega_Scout(const TreeNode* CDCNode, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth,double alpha, double beta,bool silence,double exchangeCount,struct timespec start){
+double MyAI::Nega_Scout(const TreeNode* CDCNode, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth,double alpha, double beta,bool silence,double exchangeCount,struct timespec start,int& isSaveEat){
 	int eatCount = 0;
 	int ResultEat[1024],ResultMove[1024],saveEat[1024];
 	int saveEatCount;
 	//bool silence = false;
 	struct timespec end;
 	clock_gettime(CLOCK_REALTIME, &end);
+	isSaveEat =0;
 	if(remain_depth <= 0 || ((double)((end.tv_sec+end.tv_nsec*1e-9) - (double)(start.tv_sec+start.tv_nsec*1e-9)))>TIME_LIMIT){ // reach limit of depth
 		eatCount = Expand(CDCNode->Board, red_chess_num,black_chess_num,cover_chess,color, ResultEat,ResultMove,saveEat,saveEatCount);
 		if(saveEatCount!=0){
 			int maxMove = saveEat[0],maxEat = CDCNode->Board[saveEat[0]%100];
 			for(int i=1;i<saveEatCount;i++){
 				int eat = CDCNode->Board[saveEat[i]%100];
-				if(eat>maxEat){
+				if((eat>maxEat&&maxEat!=1)||eat ==1){
 					maxEat = eat;
 					maxMove = saveEat[i];
 				}else if(eat == maxEat){
@@ -947,14 +952,15 @@ double MyAI::Nega_Scout(const TreeNode* CDCNode, int* move, const int red_chess_
 				
 			}
 			*move = maxMove;
-			return (exchangeCount) * (2*((depth&1)^1)-1);
+			if(depth ==0 )isSaveEat=1;
+			return myEvaluate(CDCNode->Board) * (2*((depth&1)^1)-1);
 		}
 		else if(eatCount%128==0){
 			this->node++;
 			// if(silence==false && exchangeCount<0){
 			// 	return 0;//-1000000 * (2*((depth&1)^1)-1);
 			// }
-			return (exchangeCount) * (2*((depth&1)^1)-1); // odd: *-1, even: *1
+			return (exchangeCount+myEvaluate(CDCNode->Board)) * (2*((depth&1)^1)-1); // odd: *-1, even: *1
 		}
 		else{
 			silence = false;
@@ -980,7 +986,7 @@ double MyAI::Nega_Scout(const TreeNode* CDCNode, int* move, const int red_chess_
 			int maxMove = saveEat[0],maxEat = CDCNode->Board[saveEat[0]%100];
 			for(int i=1;i<saveEatCount;i++){
 				int eat = CDCNode->Board[saveEat[i]%100];
-				if(eat>maxEat){
+				if((eat>maxEat&&maxEat!=1)||eat ==1){
 					maxEat = eat;
 					maxMove = saveEat[i];
 				}else if(eat == maxEat){
@@ -991,6 +997,7 @@ double MyAI::Nega_Scout(const TreeNode* CDCNode, int* move, const int red_chess_
 				
 			}
 			*move = maxMove;
+			if(depth ==0 )isSaveEat=1;
 			return 100000* (2*((depth&1)^1)-1);
 		}
 		eat_count = move_count%128;
@@ -1077,13 +1084,15 @@ double MyAI::Nega_Scout(const TreeNode* CDCNode, int* move, const int red_chess_
 			}
 			MakeMove(newNode, &new_red, &new_black, new_cover, Moves[i], -1); // -1: NULL
 			
-			double t = -Nega_Scout(newNode, &new_move, new_red, new_black, new_cover, color^1, depth+1, remain_depth-1,-n,-std::max(alpha,m),silence,exchangeCount+silenceExchange,start);
+			double t = -Nega_Scout(newNode, &new_move, new_red, new_black, new_cover, color^1, depth+1, remain_depth-1,-n,-std::max(alpha,m),silence,exchangeCount+silenceExchange,start,isSaveEat);
+			isSaveEat=0;
 			if(t > m){ 
 				if(n==beta || t>=beta || remain_depth<3){
 					m=t;
 				}
 				else{
-					m = -Nega_Scout(newNode, &new_move, new_red, new_black, new_cover, color^1, depth+1, remain_depth-1,-beta,-t,silence,exchangeCount+silenceExchange,start);
+					m = -Nega_Scout(newNode, &new_move, new_red, new_black, new_cover, color^1, depth+1, remain_depth-1,-beta,-t,silence,exchangeCount+silenceExchange,start,isSaveEat);
+					isSaveEat=0;
 				}
 				// m = t;
 				*move = Moves[i];
@@ -1177,7 +1186,7 @@ double  MyAI::F_3(const int* board, double alpha, double beta,const int red_ches
 			memcpy(new_cover, cover_chess, sizeof(int)*14);
 			
 			MakeMove(new_board, &new_red, &new_black, new_cover, Moves[i], -1); // -1: NULL
-
+			
 			double t = G_3(new_board,  std::max(alpha,m), beta,new_red, new_black, new_cover,color^1,remain_depth-1,start);
 			if(t > m){ 
 				m=t;
