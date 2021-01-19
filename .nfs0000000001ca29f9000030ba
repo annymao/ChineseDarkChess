@@ -13,7 +13,7 @@
 #define CHESS_COVER -1
 #define CHESS_EMPTY -2
 #define COMMAND_NUM 18
-#define TIME_LIMIT 10
+#define TIME_LIMIT 5
 extern TreeNode* allHashNode[MAX_NODE_NUM];
 class MyAI  
 {
@@ -88,10 +88,10 @@ private:
 	int ExpandEat(const int* board, const int color, int *Result);
 	int ExpandFlip(const int* board, const int color,std::unordered_set<int> &Result);
 	double myEvaluate(const int* board);
-	double Nega_Scout(TreeNode* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, int remain_depth,double alpha,double beta,bool silence,double exchangeCount,struct timespec start,int &isSaveEat);
+	double Nega_Scout(const TreeNode* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth,double alpha,double beta,bool silence,double exchangeCount,struct timespec start,int &isSaveEat);
 	double F_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num,const int* cover_chess, const int color,int remain_depth,struct timespec start);
 	double G_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num,const int* cover_chess, const int color,int remain_depth,struct timespec start);
-	double Star0_F_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num, const int* cover_chess, int* Chess, int current_move,int remain_count, int remain_total,const int color,int remain_depth,struct timespec start,int flag);
+	double Star0_F_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num, const int* cover_chess, int* Chess, int current_move,int remain_count, int remain_total,const int color,int remain_depth,struct timespec start);
 	
 	void TAMakeMove(int* board, int* red_chess_num, int* black_chess_num, int* cover_chess, const int move, const int chess);
 	int TAExpand(const int* board, const int color,int *Result);

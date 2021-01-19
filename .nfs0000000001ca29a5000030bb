@@ -243,18 +243,13 @@ void MyAI::generateMove(char move[6])
 		}else{
 			CDCNode = new TreeNode();
 			CDCNode->init(Board,0,hashKey);
-			//allHashNode[hashIndex] = CDCNode;
+			allHashNode[hashIndex] = CDCNode;
 		}
 		
 		printf("Total Chess Smaller than 30\n");
 		while(wall_clock_in_seconds < TIME_LIMIT){
 			thresholdDepth+=1;
 			isSaveEat=0;
-			if(CDCNode->depth>thresholdDepth){
-				best_move = CDCNode->bestMove;
-				t = CDCNode->bestValue;
-				continue;
-			}
 			t = Nega_Scout(CDCNode, &best_move, this->Red_Chess_Num, this->Black_Chess_Num, this->CoverChess, this->Color, 0, thresholdDepth,-DBL_MAX,DBL_MAX,true,0,start,isSaveEat);
 			if(isSaveEat==1)break;
 			clock_gettime(CLOCK_REALTIME, &end);
@@ -263,9 +258,7 @@ void MyAI::generateMove(char move[6])
 		printf("\n\n\nOOOOOOOOOOOOOOOOO____Depth: %d____\nOOOOOOOOOOOOOOOOOOOO\n\n\n",thresholdDepth);
 	}
 	else if(remainChess < 16){
-
 		double t = Nega_max(this->Board, &best_move, this->Red_Chess_Num, this->Black_Chess_Num, this->CoverChess, this->Color, 0, DEPTH_LIMIT+2,start);
-		
 	}
 	else{
 		TreeNode* CDCNode;
@@ -275,12 +268,17 @@ void MyAI::generateMove(char move[6])
 		}else{
 			CDCNode = new TreeNode();
 			CDCNode->init(Board,0,hashKey);
-			t = Nega_Scout(CDCNode, &best_move, this->Red_Chess_Num, this->Black_Chess_Num, this->CoverChess, this->Color, 0, DEPTH_LIMIT,-DBL_MAX,DBL_MAX,true,0,start,isSaveEat);
-
-			//allHashNode[hashIndex] = CDCNode;
+			allHashNode[hashIndex] = CDCNode;
 		}
-
-		
+		// while(wall_clock_in_seconds < 5){
+		// 	thresholdDepth+=1;
+		// 	isSaveEat=0;
+		// 	t = Nega_Scout(CDCNode, &best_move, this->Red_Chess_Num, this->Black_Chess_Num, this->CoverChess, this->Color, 0, thresholdDepth,-DBL_MAX,DBL_MAX,true,0,start,isSaveEat);
+		// 	if(isSaveEat==1)break;
+		// 	clock_gettime(CLOCK_REALTIME, &end);
+		// 	wall_clock_in_seconds =(double)((end.tv_sec+end.tv_nsec*1e-9) - (double)(start.tv_sec+start.tv_nsec*1e-9));			
+		// }
+		t = Nega_Scout(CDCNode, &best_move, this->Red_Chess_Num, this->Black_Chess_Num, this->CoverChess, this->Color, 0, DEPTH_LIMIT,-DBL_MAX,DBL_MAX,true,0,start,isSaveEat);
 	}
 	
 	startPoint = best_move/100;
@@ -378,8 +376,6 @@ void MyAI::MakeMove(int* board, int* red_chess_num, int* black_chess_num, int* c
 int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const int* cover_chess,const int color,int *ResultEat, int* ResultMove,int* saveEat,int &saveEatCount)
 {
 	int ResultMoveCount = 0,ResultEatCount=0,ResultCount=0;
-	int DangerousMove[1024];
-	int dangerousCount =0;
 	int new_board[32], new_cover[14], new_move, new_red, new_black;
 	saveEatCount=0;
 	for(int i=0;i<32;i++)
@@ -393,15 +389,19 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 				int col = i%4;
 				for(int rowCount=row*4;rowCount<(row+1)*4;rowCount++)
 				{
-					new_red = red_chess_num, new_black = black_chess_num;
-					int refreeSuccess = RefereeEat(board,i,rowCount,color); 
-					bool isSave = false;
-					if(refreeSuccess == 1 || refreeSuccess == 2){
+					if(RefereeEat(board,i,rowCount,color)==1)
+					{
+						ResultEat[ResultEatCount] = i*100+rowCount;
+						ResultEatCount++;
+					}
+					else if(RefereeEat(board,i,rowCount,color)==2)
+					{
+						new_red = red_chess_num, new_black = black_chess_num;
 						memcpy(new_board, board, sizeof(int)*32);
 						memcpy(new_cover, cover_chess, sizeof(int)*14);
 						MakeMove(new_board, &new_red, &new_black, new_cover, i*100+rowCount, -1);
+						bool isSave = true;
 						int Move[4] = {rowCount-4,rowCount+1,rowCount+4,rowCount-1};
-						isSave = true;
 						for(int k=0; k<4;k++)
 						{
 							if(Move[k] >= 0 && Move[k] < 32)
@@ -435,21 +435,6 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 							}
 
 						}
-					}
-
-					if(refreeSuccess==1)
-					{
-						if(isSave){
-							ResultMove[ResultMoveCount] = i*100+rowCount;
-							ResultMoveCount++;
-						}
-						else{
-							DangerousMove[dangerousCount] = i*100+rowCount;
-							dangerousCount++;
-						}
-					}
-					else if(refreeSuccess==2)
-					{
 						if(isSave){
 							saveEat[saveEatCount] = i*100+rowCount;
 							saveEatCount++;
@@ -463,14 +448,19 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 				}
 				for(int colCount=col; colCount<32;colCount += 4)
 				{
-					new_red = red_chess_num, new_black = black_chess_num;
-					bool isSave = false;
-					int refreeSuccess =RefereeEat(board,i,colCount,color); 
-					if(refreeSuccess ==1 || refreeSuccess==2){
+				
+					if(RefereeEat(board,i,colCount,color)==1)
+					{
+						ResultEat[ResultEatCount] = i*100+colCount;
+						ResultEatCount++;
+					}
+					else if(RefereeEat(board,i,colCount,color)==2)
+					{
+						new_red = red_chess_num, new_black = black_chess_num;
 						memcpy(new_board, board, sizeof(int)*32);
 						memcpy(new_cover, cover_chess, sizeof(int)*14);
 						MakeMove(new_board, &new_red, &new_black, new_cover, i*100+colCount, -1);
-						isSave = true;
+						bool isSave = true;
 						int Move[4] = {colCount-4,colCount+1,colCount+4,colCount-1};
 						for(int k=0; k<4;k++)
 						{
@@ -504,23 +494,7 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 								}
 							}
 
-						}						
-					}
-
-					if(refreeSuccess==1)
-					{
-						if(isSave){
-							ResultMove[ResultMoveCount] = i*100+colCount;
-							ResultMoveCount++;
 						}
-						else{
-							DangerousMove[dangerousCount] = i*100+colCount;
-							dangerousCount++;
-						}
-					}
-					else if(refreeSuccess==2)
-					{
-						
 						if(isSave){
 							saveEat[saveEatCount] = i*100+colCount;
 							saveEatCount++;
@@ -537,16 +511,21 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 				int Move[4] = {i-4,i+1,i+4,i-1};
 				for(int k=0; k<4;k++)
 				{
+					
 					if(Move[k] >= 0 && Move[k] < 32)
 					{
-						bool isSave = false;
-						int refreeSuccess =RefereeEat(board,i,Move[k],color); 
-						if(refreeSuccess == 1 || refreeSuccess == 2){
+						if(RefereeEat(board,i,Move[k],color)==1)
+						{
+							ResultEat[ResultEatCount] = i*100+Move[k];
+							ResultEatCount++;
+						}
+						else if(RefereeEat(board,i,Move[k],color)==2)
+						{
 							new_red = red_chess_num, new_black = black_chess_num;
 							memcpy(new_board, board, sizeof(int)*32);
 							memcpy(new_cover, cover_chess, sizeof(int)*14);
 							MakeMove(new_board, &new_red, &new_black, new_cover, i*100+Move[k], -1);
-							isSave = true;
+							bool isSave = true;
 							int Move2[4] = {Move[k]-4,Move[k]+1,Move[k]+4,Move[k]-1};
 							for(int h=0; h<4;h++)
 							{
@@ -580,24 +559,6 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 								}
 
 							}
-
-						}
-						
-
-						if(refreeSuccess==1)
-						{
-							if(isSave){
-								ResultMove[ResultMoveCount] = i*100+Move[k];
-								ResultMoveCount++;
-							}
-							else{
-								DangerousMove[dangerousCount] = i*100+Move[k];
-								dangerousCount++;
-							}
-						}
-						else if(refreeSuccess==2)
-						{
-
 							if(isSave){
 								saveEat[saveEatCount] = i*100+Move[k];
 								saveEatCount++;
@@ -613,14 +574,11 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 		
 		}
 	}
-	if(ResultMoveCount == 0){
-		ResultMoveCount = dangerousCount;
-		memcpy(ResultMove,DangerousMove,sizeof(int)*ResultMoveCount);
-	}
-	ResultCount = ResultEatCount*128+ResultMoveCount;
+
+	ResultCount = ResultEatCount;
 	return ResultCount;
 }
- 
+
 
 
 //TODO: Do not flip the chess that is near ourself
@@ -1012,9 +970,8 @@ double MyAI::myEvaluate(const int* board){
 }
 
 int chessCorner[4] = {10,11,21,22};
-double MyAI::Nega_Scout( TreeNode* CDCNode, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth,  int remain_depth,double alpha, double beta,bool silence,double exchangeCount,struct timespec start,int& isSaveEat){
-	int eat_count = 0;
-	
+double MyAI::Nega_Scout(const TreeNode* CDCNode, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth,double alpha, double beta,bool silence,double exchangeCount,struct timespec start,int& isSaveEat){
+	int eatCount = 0;
 	int ResultEat[1024],ResultMove[1024],saveEat[1024];
 	int saveEatCount;
 	//bool silence = false;
@@ -1034,11 +991,10 @@ double MyAI::Nega_Scout( TreeNode* CDCNode, int* move, const int red_chess_num, 
 	int Moves[2048], Chess[2048];
 	int flip_count = 0, remain_count = 0, remain_total = 0;
 	int move_count = 0;
-	int new_board[32], new_cover[14], new_move, new_red, new_black;
 
 	// move
 	if(silence){
-		
+		int eat_count = 0;
 		move_count = Expand(CDCNode->Board,red_chess_num, black_chess_num,cover_chess,color, ResultEat,ResultMove,saveEat,saveEatCount);
 		if(saveEatCount>0){
 			int maxMove = saveEat[0],maxEat = CDCNode->Board[saveEat[0]%100];
@@ -1055,23 +1011,19 @@ double MyAI::Nega_Scout( TreeNode* CDCNode, int* move, const int red_chess_num, 
 				
 			}
 			*move = maxMove;
-			new_red = red_chess_num, new_black = black_chess_num;
-			memcpy(new_board, CDCNode->Board, sizeof(int)*32);
-			memcpy(new_cover, cover_chess, sizeof(int)*14);
-			MakeMove(new_board, &new_red, &new_black, new_cover,maxMove, -1); // -1: NULL
-
 			if(depth ==0 )isSaveEat=1;
-			return TAEvaluate(new_board)* (2*((depth&1)^1)-1);
+			return TAEvaluate(CDCNode->Board)* (2*((depth&1)^1)-1);
 		}
-		eat_count = move_count/128;
-		move_count = move_count%128;
-
+		// eat_count = move_count%128;
+		// move_count = move_count/128;
+		memcpy(Moves,ResultEat,sizeof(int)*move_count);
+		//memcpy(Moves+eat_count,ResultMove,sizeof(int)*move_count);
+		//move_count +=eat_count;
 	}
 	else
 	{
 		//move_count = eatCount%128;
-		move_count =0;
-		//memcpy(Moves, ResultEat, sizeof(int)*move_count);
+		memcpy(Moves, ResultEat, sizeof(int)*move_count);
 	}
 	
 	
@@ -1089,7 +1041,7 @@ double MyAI::Nega_Scout( TreeNode* CDCNode, int* move, const int red_chess_num, 
 		if(tmpFlip == 0){
 			for(int i = 0; i < 32; i++){ // find cover
 				if(CDCNode->Board[i] == CHESS_COVER){
-					Moves[flip_count] = i*100+i;
+					Moves[move_count + flip_count] = i*100+i;
 					flip_count++;
 				}
 			}			
@@ -1097,41 +1049,38 @@ double MyAI::Nega_Scout( TreeNode* CDCNode, int* move, const int red_chess_num, 
 		else{
 			for ( auto it = tmpFlipResult.begin(); it != tmpFlipResult.end(); ++it ){
 				
-				Moves[flip_count] = *it;
+				Moves[move_count + flip_count] = *it;
 				flip_count++;
 			}
 		}
 		
 	}
-	if(depth==0){
-		printf("\n-------------\n%d %d %d\n--------------\n",eat_count,move_count,flip_count);
-		for(int i=0;i<flip_count;i++){
-			printf("%d ",Moves[i]);
-		}
-		printf("\n\n");
-	}
-		
-	if(move_count + eat_count + flip_count == 0){ // terminal node (no move type)
+
+
+	if(move_count + flip_count == 0){ // terminal node (no move type)
 		this->node++;
 		return TAEvaluate(CDCNode->Board) * (2*((depth&1)^1)-1);
 	}
-
+	// else if(depth !=0 && move_count ==0){
+	// 	this->node++;
+	// 	return Evaluate(board) * (2*((depth&1)^1)-1);
+	// }
 	else if(flip_count == 32){
 		int r = rand()%4;
 		*move = 100*chessCorner[r]+chessCorner[r];
 		return 0;
 
 	}
-	else if(move_count + eat_count + flip_count==1){
+	else if(move_count+flip_count==1){
 		*move = Moves[0];
 		return TAEvaluate(CDCNode->Board) * (2*((depth&1)^1)-1);
 	}
 	else{
 		double m = -DBL_MAX;
 		double n = beta;
+		int new_board[32], new_cover[14], new_move, new_red, new_black;
 		int src=0,dst=0,silenceExchange = 0;
 		// search deeper
-		///MOVE
 		for(int i = 0; i < move_count; i++){ // move
 			new_red = red_chess_num, new_black = black_chess_num;
 			//memcpy(new_board, board, sizeof(int)*32);
@@ -1139,15 +1088,16 @@ double MyAI::Nega_Scout( TreeNode* CDCNode, int* move, const int red_chess_num, 
 			newNode->init(CDCNode->Board,depth+1,CDCNode->hashKey);
 			memcpy(new_cover, cover_chess, sizeof(int)*14);
 			if(silence==false){
-				src = ResultMove[i]/100;
-				dst = ResultMove[i]%100;
+				src = Moves[i]/100;
+				dst = Moves[i]%100;
 				double values[14] = {1,180,6,18,90,270,810,1,180,6,18,90,270,810};	
 				silenceExchange = (values[CDCNode->Board[dst]%7]) *  (2*((depth&1)^1)-1);
 			}
 			else{
 				silenceExchange=0;
 			}
-			MakeMove(newNode, &new_red, &new_black, new_cover, ResultMove[i], -1); // -1: NULL
+			MakeMove(newNode, &new_red, &new_black, new_cover, Moves[i], -1); // -1: NULL
+			
 			double t = -Nega_Scout(newNode, &new_move, new_red, new_black, new_cover, color^1, depth+1, remain_depth-1,-n,-std::max(alpha,m),silence,exchangeCount+silenceExchange,start,isSaveEat);
 			isSaveEat=0;
 			if(t > m){ 
@@ -1159,57 +1109,18 @@ double MyAI::Nega_Scout( TreeNode* CDCNode, int* move, const int red_chess_num, 
 					isSaveEat=0;
 				}
 				// m = t;
-				*move = ResultMove[i];
+				*move = Moves[i];
 			}
-			else if(t == m){
-				bool r = rand()%2;
-				if(r) *move = ResultMove[i];
-			}
+			// else if(t == m){
+			// 	bool r = rand()%2;
+			// 	if(r) *move = Moves[i];
+			// }
 			if(m>=beta) return m; 
 			n=std::max(alpha,m)+1;
 		}
-
-		/// Exchange Eat
-		for(int i = 0; i < eat_count; i++){ // move
-			new_red = red_chess_num, new_black = black_chess_num;
-			//memcpy(new_board, board, sizeof(int)*32);
-			TreeNode * newNode = new TreeNode();
-			newNode->init(CDCNode->Board,depth+1,CDCNode->hashKey);
-			memcpy(new_cover, cover_chess, sizeof(int)*14);
-			if(silence==false){
-				src = ResultEat[i]/100;
-				dst = ResultEat[i]%100;
-				double values[14] = {1,180,6,18,90,270,810,1,180,6,18,90,270,810};	
-				silenceExchange = (values[CDCNode->Board[dst]%7]) *  (2*((depth&1)^1)-1);
-			}
-			else{
-				silenceExchange=0;
-			}
-			MakeMove(newNode, &new_red, &new_black, new_cover, ResultEat[i], -1); // -1: NULL
-			double t = -Nega_Scout(newNode, &new_move, new_red, new_black, new_cover, color^1, depth+1, remain_depth-1,-n,-std::max(alpha,m),silence,exchangeCount+silenceExchange,start,isSaveEat);
-			isSaveEat=0;
-			if(t > m){ 
-				if(n==beta || t>=beta || remain_depth<3){
-					m=t;
-				}
-				else{
-					m = -Nega_Scout(newNode, &new_move, new_red, new_black, new_cover, color^1, depth+1, remain_depth-1,-beta,-t,silence,exchangeCount+silenceExchange,start,isSaveEat);
-					isSaveEat=0;
-				}
-				// m = t;
-				*move = ResultEat[i];
-			}
-			else if(t == m){
-				bool r = rand()%2;
-				if(r) *move = ResultEat[i];
-			}
-			if(m>=beta) return m; 
-			n=std::max(alpha,m)+1;
-		}
-
-		if(silence){
-			for(int i = 0; i < flip_count; i++){ // flip
-				double E_score =((double)(2*((depth&1)^1)-1))*Star0_F_3(CDCNode->Board, std::max(alpha,m),beta,red_chess_num, black_chess_num,  cover_chess, Chess, Moves[i],remain_count,remain_total,color,remain_depth,start,depth%2);
+		if(silence && (depth%2==0)){
+			for(int i = move_count; i < move_count + flip_count; i++){ // flip
+				double E_score = Star0_F_3(CDCNode->Board, std::max(alpha,m),beta,red_chess_num, black_chess_num,  cover_chess, Chess, Moves[i],remain_count,remain_total,color,remain_depth,start);
 				if(E_score > m){ 
 					m = E_score;
 					*move = Moves[i];
@@ -1220,7 +1131,7 @@ double MyAI::Nega_Scout( TreeNode* CDCNode, int* move, const int red_chess_num, 
 				}
 			}
 
-		}			
+		}
 		return m;
 	}
 }
@@ -1242,31 +1153,18 @@ double  MyAI::F_3(const int* board, double alpha, double beta,const int red_ches
 	// move
 	int eat_count = 0;
 	move_count = Expand(board,red_chess_num, black_chess_num,cover_chess,color, ResultEat,ResultMove,saveEat,saveEatCount);
-	int new_board[32], new_cover[14], new_move, new_red, new_black;
 	if(saveEatCount>0){
-		//memcpy(Moves,saveEat,sizeof(int)*saveEatCount);	
-		new_red = red_chess_num, new_black = black_chess_num;
-		memcpy(new_board, board, sizeof(int)*32);
-		memcpy(new_cover, cover_chess, sizeof(int)*14);
-		int maxMove = saveEat[0],maxEat = board[saveEat[0]%100];
-		for(int i=1;i<saveEatCount;i++){
-			int eat = board[saveEat[i]%100];
-			if((eat>maxEat&&maxEat!=1)||eat ==1){
-				maxEat = eat;
-				maxMove = saveEat[i];
-			}else if(eat == maxEat){
-				if(board[maxMove/100] > board[saveEat[i]/100]){
-					maxMove = saveEat[i];
-				}
-			}
-			
-		}
-		//*move = maxMove;
-		MakeMove(new_board, &new_red, &new_black, new_cover,maxMove, -1); // -1: NULL
-		return 	TAEvaluate(new_board);
+		memcpy(Moves,saveEat,sizeof(int)*saveEatCount);		
 	}
-	eat_count = move_count/128;
-	move_count = move_count%128;
+	// eat_count = move_count%128;
+	// move_count = move_count/128;
+	// memcpy(Moves+saveEatCount,ResultEat,sizeof(int)*eat_count);
+	// memcpy(Moves+saveEatCount+eat_count,ResultMove,sizeof(int)*move_count);
+	// move_count +=eat_count;
+	memcpy(Moves+saveEatCount,ResultEat,sizeof(int)*move_count);
+
+	//move_count = Expand(board, color, Result);
+	//memcpy(Moves, Result, sizeof(int)*move_count);
 	// flip
 
 	for(int j = 0; j < 14; j++){ // find remain chess
@@ -1281,51 +1179,33 @@ double  MyAI::F_3(const int* board, double alpha, double beta,const int red_ches
 	if(tmpFlip == 0){
 		for(int i = 0; i < 32; i++){ // find cover
 			if(board[i] == CHESS_COVER){
-				Moves[flip_count] = i*100+i;
+				Moves[move_count + flip_count] = i*100+i;
 				flip_count++;
 			}
 		}			
 	}
 	else{
 		for ( auto it = tmpFlipResult.begin(); it != tmpFlipResult.end(); ++it ){
-			Moves[flip_count] = *it;
+			Moves[move_count + flip_count] = *it;
 			flip_count++;
 		}
 	}
 		
-	if(move_count + eat_count+flip_count == 0){ // terminal node (no move type)
+	if(move_count + flip_count == 0){ // terminal node (no move type)
 		return TAEvaluate(board);
 	}
 	else{
 		double m = -DBL_MAX;
+		int new_board[32], new_cover[14], new_move, new_red, new_black;
 		// search deeper
 		for(int i = 0; i < move_count; i++){ // move
 			new_red = red_chess_num, new_black = black_chess_num;
 			memcpy(new_board, board, sizeof(int)*32);
 			memcpy(new_cover, cover_chess, sizeof(int)*14);
-			MakeMove(new_board, &new_red, &new_black, new_cover, ResultMove[i], -1); // -1: NULL
+			
+			MakeMove(new_board, &new_red, &new_black, new_cover, Moves[i], -1); // -1: NULL
 			
 			double t = G_3(new_board,  std::max(alpha,m), beta,new_red, new_black, new_cover,color^1,remain_depth-1,start);
-			if(t > m){ 
-				m=t;
-			}
-			if(m>=beta) return m; 
-		}
-		for(int i = 0; i < eat_count; i++){ // move
-			new_red = red_chess_num, new_black = black_chess_num;
-			memcpy(new_board, board, sizeof(int)*32);
-			memcpy(new_cover, cover_chess, sizeof(int)*14);
-			MakeMove(new_board, &new_red, &new_black, new_cover, ResultEat[i], -1); // -1: NULL
-			
-			double t = G_3(new_board,  std::max(alpha,m), beta,new_red, new_black, new_cover,color^1,remain_depth-1,start);
-			if(t > m){ 
-				m=t;
-			}
-			if(m>=beta) return m; 
-		}
-
-		for(int i = 0; i < flip_count; i++){ // flip
-			double t = Star0_F_3(board, std::max(alpha,m),beta,red_chess_num, black_chess_num,  cover_chess, Chess, Moves[i],remain_count,remain_total,color,remain_depth,start,0);
 			if(t > m){ 
 				m=t;
 				//*move = Moves[i];
@@ -1334,6 +1214,20 @@ double  MyAI::F_3(const int* board, double alpha, double beta,const int red_ches
 			// 	bool r = rand()%2;
 			// 	if(r) *move = Moves[i];
 			// }
+			if(m>=beta) return m; 
+		}
+
+		for(int i = move_count; i < move_count + flip_count; i++){ // flip
+			double t = Star0_F_3(board, std::max(alpha,m),beta,red_chess_num, black_chess_num,  cover_chess, Chess, Moves[i],remain_count,remain_total,color,remain_depth,start);
+			if(t > m){ 
+				m=t;
+				//*move = Moves[i];
+			}
+			// else if(t == m){
+			// 	bool r = rand()%2;
+			// 	if(r) *move = Moves[i];
+			// }
+			if(m>=beta) return m; 
 		}
 		return m;
 	}
@@ -1346,102 +1240,41 @@ double MyAI::G_3(const int* board, double alpha, double beta,const int red_chess
 	if(remain_depth <= 0 || ((double)((end.tv_sec+end.tv_nsec*1e-9) - (double)(start.tv_sec+start.tv_nsec*1e-9)))>TIME_LIMIT){
 		return TAEvaluate(board);
 	}
-	else if(red_chess_num == 0 || black_chess_num == 0){
+	if(red_chess_num == 0 || black_chess_num == 0){
 		return TAEvaluate(board);
 	}
 	int ResultEat[2048],ResultMove[2048],saveEat[2048];
 	int saveEatCount =0;
-	int Moves[2048], Chess[2048];
-	int flip_count = 0, remain_count = 0, remain_total = 0;
+	int Moves[2048];
 	int move_count = 0;
 
 	// move
 	int eat_count = 0;
 	move_count = Expand(board,red_chess_num, black_chess_num,cover_chess,color, ResultEat,ResultMove,saveEat,saveEatCount);
-	int new_board[32], new_cover[14], new_move, new_red, new_black;
 	if(saveEatCount>0){
-		//memcpy(Moves,saveEat,sizeof(int)*saveEatCount);	
-		new_red = red_chess_num, new_black = black_chess_num;
-		memcpy(new_board, board, sizeof(int)*32);
-		memcpy(new_cover, cover_chess, sizeof(int)*14);
-		int maxMove = saveEat[0],maxEat = board[saveEat[0]%100];
-		for(int i=1;i<saveEatCount;i++){
-			int eat = board[saveEat[i]%100];
-			if((eat>maxEat&&maxEat!=1)||eat ==1){
-				maxEat = eat;
-				maxMove = saveEat[i];
-			}else if(eat == maxEat){
-				if(board[maxMove/100] > board[saveEat[i]/100]){
-					maxMove = saveEat[i];
-				}
-			}
-			
-		}
-		//*move = maxMove;
-		MakeMove(new_board, &new_red, &new_black, new_cover,maxMove, -1); // -1: NULL
-		return 	TAEvaluate(new_board);
+		memcpy(Moves,saveEat,sizeof(int)*saveEatCount);
 	}
-	eat_count = move_count/128;
-	move_count = move_count%128;
-	// flip
-
-	for(int j = 0; j < 14; j++){ // find remain chess
-		if(cover_chess[j] > 0){
-			Chess[remain_count] = j;
-			remain_count++;
-			remain_total += cover_chess[j];
-		}
-	}
-	std::unordered_set<int> tmpFlipResult;
-	int tmpFlip = ExpandFlip(board, color,tmpFlipResult);
-	if(tmpFlip == 0){
-		for(int i = 0; i < 32; i++){ // find cover
-			if(board[i] == CHESS_COVER){
-				Moves[flip_count] = i*100+i;
-				flip_count++;
-			}
-		}			
-	}
-	else{
-		for ( auto it = tmpFlipResult.begin(); it != tmpFlipResult.end(); ++it ){
-			Moves[flip_count] = *it;
-			flip_count++;
-		}
-	}
+	//eat_count = move_count%128;
+	//move_count = move_count/128;
+	memcpy(Moves+saveEatCount,ResultEat,sizeof(int)*move_count);
+	//memcpy(Moves+saveEatCount,ResultMove,sizeof(int)*move_count);
+	//move_count +=eat_count;
 		
-	if(move_count + flip_count == 0){ // terminal node (no move type)
+	if(move_count == 0){ // terminal node (no move type)
 		return TAEvaluate(board);
 	}
 	else{
 		double m = DBL_MAX;
+		int new_board[32], new_cover[14], new_move, new_red, new_black;
 		// search deeper
 		for(int i = 0; i < move_count; i++){ // move
 			new_red = red_chess_num, new_black = black_chess_num;
 			memcpy(new_board, board, sizeof(int)*32);
 			memcpy(new_cover, cover_chess, sizeof(int)*14);
-			MakeMove(new_board, &new_red, &new_black, new_cover, ResultMove[i], -1); // -1: NULL
 			
-			double t = F_3(new_board,  std::max(alpha,m), beta,new_red, new_black, new_cover,color^1,remain_depth-1,start);
-			if(t < m){ 
-				m=t;
-			}
-			if(m<=alpha) return m; 
-		}
-		for(int i = 0; i < eat_count; i++){ // move
-			new_red = red_chess_num, new_black = black_chess_num;
-			memcpy(new_board, board, sizeof(int)*32);
-			memcpy(new_cover, cover_chess, sizeof(int)*14);
-			MakeMove(new_board, &new_red, &new_black, new_cover, ResultEat[i], -1); // -1: NULL
-			
-			double t = F_3(new_board,  std::max(alpha,m), beta,new_red, new_black, new_cover,color^1,remain_depth-1,start);
-			if(t < m){ 
-				m=t;
-			}
-			if(m<=alpha) return m; 
-		}
+			MakeMove(new_board, &new_red, &new_black, new_cover, Moves[i], -1); // -1: NULL
 
-		for(int i = 0; i < flip_count; i++){ // flip
-			double t = Star0_F_3(board, std::max(alpha,m),beta,red_chess_num, black_chess_num,  cover_chess, Chess, Moves[i],remain_count,remain_total,color,remain_depth,start,1);
+			double t = F_3(new_board,  alpha, std::min(m,beta),red_chess_num, black_chess_num, cover_chess,color^1,remain_depth-1,start);
 			if(t < m){ 
 				m=t;
 				//*move = Moves[i];
@@ -1450,14 +1283,13 @@ double MyAI::G_3(const int* board, double alpha, double beta,const int red_chess
 			// 	bool r = rand()%2;
 			// 	if(r) *move = Moves[i];
 			// }
-			//if(m<=alpha) return m; 
+			if(m<=alpha) return m; 
 		}
-		return m;
 	}
 	return 0;
 }
 
-double  MyAI::Star0_F_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num, const int* cover_chess, int* Chess, int current_move,int remain_count, int remain_total,const int color,int remain_depth,struct timespec start,int flag){
+double  MyAI::Star0_F_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num, const int* cover_chess, int* Chess, int current_move,int remain_count, int remain_total,const int color,int remain_depth,struct timespec start){
 	int new_board[32], new_cover[14], new_move, new_red, new_black;
 
 	double total = 0;
@@ -1467,16 +1299,10 @@ double  MyAI::Star0_F_3(const int* board, double alpha, double beta,const int re
 		memcpy(new_cover, cover_chess, sizeof(int)*14);
 		
 		MakeMove(new_board, &new_red, &new_black, new_cover, current_move, Chess[k]);
-		double t=0;
-		if(flag==0)
-			t = G_3(new_board,  alpha, beta,new_red, new_black, new_cover,color^1,remain_depth-1,start);
-		else
-			t = F_3(new_board,  alpha, beta,new_red, new_black, new_cover,color^1,remain_depth-1,start);
-		
+		double t = G_3(new_board,  alpha, beta,new_red, new_black, new_cover,color^1,remain_depth-1,start);
 		total += t*Chess[k];
 	}
-	//if(remain_total == 0)printf("\n-------------ERROR-----------\n");
-	double E_score = (total / (double)remain_total); // calculate the expect value of flip
+	double E_score = (total / remain_total); // calculate the expect value of flip
 	return E_score;
 }
 
@@ -1794,7 +1620,7 @@ double MyAI:: Nega_max(const int* board, int* move, const int red_chess_num, con
 	
 	struct timespec end;
 	clock_gettime(CLOCK_REALTIME, &end);
-	if(remain_depth == 0 || ((double)((end.tv_sec+end.tv_nsec*1e-9) - (double)(start.tv_sec+start.tv_nsec*1e-9)))>10){ // reach limit of depth
+	if(remain_depth == 0 || ((double)((end.tv_sec+end.tv_nsec*1e-9) - (double)(start.tv_sec+start.tv_nsec*1e-9)))>15){ // reach limit of depth
 		this->node++;
 		return TAEvaluate(board) * (2*((depth&1)^1)-1); // odd: *-1, even: *1
 	}else if(red_chess_num == 0 || black_chess_num == 0){ // terminal node (no chess type)
