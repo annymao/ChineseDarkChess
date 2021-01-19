@@ -3,7 +3,7 @@
 #include <random> 
 #include <limits.h>
 
-#define MAX_NODE_NUM 1048576 //2^20
+#define MAX_NODE_NUM 4096 //2^12
 
 
 static std::random_device rd;    
@@ -11,7 +11,7 @@ static std::mt19937_64 random_generator(rd());
 static std::uniform_int_distribution<unsigned long long> num(0, ULLONG_MAX);
 
 extern unsigned long long randomColorValue[2];
-extern unsigned long long randomMoveValue[16][32];
+extern unsigned long long randomMoveValue[15][32];
 
 void InitRandomValue();
 
@@ -22,5 +22,7 @@ unsigned long long UpdateHashForEat(unsigned long long oldValue,  int chessFrom,
 unsigned long long UpdateHashForMove(unsigned long long oldValue, int chessFrom, int chessFromPos, int chessToPos);
 
 unsigned long long UpdateHashForFlip(unsigned long long oldValue, int chessFlip, int chessPos);
+bool compareBoard(int* board1, int* board2);
+
 
 #endif
