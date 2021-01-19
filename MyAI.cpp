@@ -391,8 +391,8 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 				{
 					if(RefereeEat(board,i,rowCount,color)==1)
 					{
-						ResultMove[ResultMoveCount] = i*100+rowCount;
-						ResultMoveCount++;
+						ResultEat[ResultEatCount] = i*100+rowCount;
+						ResultEatCount++;
 					}
 					else if(RefereeEat(board,i,rowCount,color)==2)
 					{
@@ -451,8 +451,8 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 				
 					if(RefereeEat(board,i,colCount,color)==1)
 					{
-						ResultMove[ResultMoveCount] = i*100+colCount;
-						ResultMoveCount++;
+						ResultEat[ResultEatCount] = i*100+colCount;
+						ResultEatCount++;
 					}
 					else if(RefereeEat(board,i,colCount,color)==2)
 					{
@@ -516,8 +516,8 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 					{
 						if(RefereeEat(board,i,Move[k],color)==1)
 						{
-							ResultMove[ResultMoveCount] = i*100+Move[k];
-							ResultMoveCount++;
+							ResultEat[ResultEatCount] = i*100+Move[k];
+							ResultEatCount++;
 						}
 						else if(RefereeEat(board,i,Move[k],color)==2)
 						{
@@ -575,7 +575,7 @@ int MyAI::Expand(const int* board, int red_chess_num, int black_chess_num,const 
 		}
 	}
 
-	ResultCount = ResultMoveCount*128+ResultEatCount;
+	ResultCount = ResultEatCount;
 	return ResultCount;
 }
 
@@ -1014,15 +1014,15 @@ double MyAI::Nega_Scout(const TreeNode* CDCNode, int* move, const int red_chess_
 			if(depth ==0 )isSaveEat=1;
 			return TAEvaluate(CDCNode->Board)* (2*((depth&1)^1)-1);
 		}
-		eat_count = move_count%128;
-		move_count = move_count/128;
-		memcpy(Moves,ResultEat,sizeof(int)*eat_count);
-		memcpy(Moves+eat_count,ResultMove,sizeof(int)*move_count);
-		move_count +=eat_count;
+		// eat_count = move_count%128;
+		// move_count = move_count/128;
+		memcpy(Moves,ResultEat,sizeof(int)*move_count);
+		//memcpy(Moves+eat_count,ResultMove,sizeof(int)*move_count);
+		//move_count +=eat_count;
 	}
 	else
 	{
-		move_count = eatCount%128;
+		//move_count = eatCount%128;
 		memcpy(Moves, ResultEat, sizeof(int)*move_count);
 	}
 	
@@ -1156,11 +1156,13 @@ double  MyAI::F_3(const int* board, double alpha, double beta,const int red_ches
 	if(saveEatCount>0){
 		memcpy(Moves,saveEat,sizeof(int)*saveEatCount);		
 	}
-	eat_count = move_count%128;
-	move_count = move_count/128;
-	memcpy(Moves+saveEatCount,ResultEat,sizeof(int)*eat_count);
-	memcpy(Moves+saveEatCount+eat_count,ResultMove,sizeof(int)*move_count);
-	move_count +=eat_count;
+	// eat_count = move_count%128;
+	// move_count = move_count/128;
+	// memcpy(Moves+saveEatCount,ResultEat,sizeof(int)*eat_count);
+	// memcpy(Moves+saveEatCount+eat_count,ResultMove,sizeof(int)*move_count);
+	// move_count +=eat_count;
+	memcpy(Moves+saveEatCount,ResultEat,sizeof(int)*move_count);
+
 	//move_count = Expand(board, color, Result);
 	//memcpy(Moves, Result, sizeof(int)*move_count);
 	// flip
@@ -1252,11 +1254,11 @@ double MyAI::G_3(const int* board, double alpha, double beta,const int red_chess
 	if(saveEatCount>0){
 		memcpy(Moves,saveEat,sizeof(int)*saveEatCount);
 	}
-	eat_count = move_count%128;
-	move_count = move_count/128;
-	memcpy(Moves+saveEatCount,ResultEat,sizeof(int)*eat_count);
-	memcpy(Moves+saveEatCount+eat_count,ResultMove,sizeof(int)*move_count);
-	move_count +=eat_count;
+	//eat_count = move_count%128;
+	//move_count = move_count/128;
+	memcpy(Moves+saveEatCount,ResultEat,sizeof(int)*move_count);
+	//memcpy(Moves+saveEatCount,ResultMove,sizeof(int)*move_count);
+	//move_count +=eat_count;
 		
 	if(move_count == 0){ // terminal node (no move type)
 		return TAEvaluate(board);
