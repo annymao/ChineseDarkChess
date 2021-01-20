@@ -240,7 +240,7 @@ void MyAI::generateMove(char move[6])
 	int hashIndex = hashKey%MAX_NODE_NUM;
 	int isSaveEat=0;
 	int returnDepth=0;
-	if(remainChess>12){
+	if(remainChess>=12){
 		bool isHit = false;
 		if(allHashNode[hashIndex]!=NULL){
 			if(allHashNode[hashIndex]->hashKey == hashKey &&compareBoard(Board,allHashNode[hashIndex]->Board)){
