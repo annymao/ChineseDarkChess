@@ -86,9 +86,9 @@ private:
 	void MakeMove(int* board, int* red_chess_num, int* black_chess_num, int* cover_chess, const char move[6]);
 	bool Referee(const int* board, const int Startoint, const int EndPoint, const int color);
 	int RefereeEat(const int* board, const int Startoint, const int EndPoint, const int color);
-	int Expand(const int* board, int red_chess_num, int black_chess_num,const int* cover_chess, const int color,int *ResultEat, int* ResultMove,int* saveEat,int &saveEatCount);
+	int Expand(const int* board, int red_chess_num, int black_chess_num,const int* cover_chess, const int color,int *ResultEat, int* ResultMove,int* saveEat,int &saveEatCount,int* escapeMove, int& escapeCount);
 	int ExpandEat(const int* board, const int color, int *Result);
-	int ExpandFlip(const int* board, const int color,std::unordered_set<int> &Result);
+	int ExpandFlip(const int* board, const int color,std::unordered_set<int> &Result,const int* cover_chess);
 	double myEvaluate(const int* board);
 	double Nega_Scout(TreeNode* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, int remain_depth,double alpha,double beta,bool silence,double exchangeCount,struct timespec start,int &isSaveEat,int& returnDepth);
 	double F_3(const int* board, double alpha, double beta,const int red_chess_num, const int black_chess_num,const int* cover_chess, const int color,int remain_depth,struct timespec start);
@@ -100,6 +100,7 @@ private:
 	bool TAReferee(const int* chess, const int from_location_no, const int to_location_no, const int UserId);
 	double Nega_max(const int* board, int* move, const int red_chess_num, const int black_chess_num, const int* cover_chess, const int color, const int depth, const int remain_depth,struct timespec start);
 	double TAEvaluate(const int* board);
+	bool IsLarger(int* board,int color);
 
 	// Display
 	void Pirnf_Chess(int chess_no,char *Result);
