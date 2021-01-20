@@ -19,6 +19,7 @@ public:
     int Board[32];
     int move;
     int depth;
+    bool isSearch=false;
     double bestValue;
     int bestMove;
     

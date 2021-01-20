@@ -81,7 +81,7 @@ private:
 	// Board
 	void initBoardState();
 	void generateMove(char move[6]);
-	void MakeMove(TreeNode* CDCNode, int* red_chess_num, int* black_chess_num, int* cover_chess, const int move, const int chess);
+	unsigned long long  MakeMove(int* board, int* red_chess_num, int* black_chess_num, int* cover_chess, const int move, const int chess,unsigned long long currentKey);
 	void MakeMove(int* board, int* red_chess_num, int* black_chess_num, int* cover_chess, const int move, const int chess);
 	void MakeMove(int* board, int* red_chess_num, int* black_chess_num, int* cover_chess, const char move[6]);
 	bool Referee(const int* board, const int Startoint, const int EndPoint, const int color);
